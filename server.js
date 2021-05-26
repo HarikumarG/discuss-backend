@@ -1,13 +1,12 @@
+require('dotenv').config();
 const express = require('express');
+const accountsRouter = require('./routes/accounts');
+
 const app = express();
 
-app.get('/', (request, response) => {
+app.use(express.json());
 
-    let responseBody = {
-        "STATUS": "SUCCESS"
-    }
-    response.status(200).send(JSON.stringify(responseBody));
-
-});
+//all "accounts" and its related routes will be routed to "accountsRouter"
+app.use('/accounts',accountsRouter);
 
 app.listen(3000);
