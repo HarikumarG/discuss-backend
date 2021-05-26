@@ -1,4 +1,4 @@
-const mysql_connection = require('../dao/mysql-connection')
+const mysql_connection = require('../dao/mysql-connection');
 
 //function to create account for a user
 function registerUser(userDetails) {

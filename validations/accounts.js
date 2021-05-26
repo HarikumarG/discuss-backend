@@ -1,32 +1,25 @@
 //checks whether the user details has null or undefined or contains only white-space
+const checkString = require('../utils/string-operations');
+
 function signUpValidation(userDetails) {
-    if(!userDetails.user_name || /^\s*$/.test(userDetails.user_name)) {
-        return false;
+    if(checkString.isValid(userDetails.user_name) && checkString.isValid(userDetails.email_id) && checkString.isValid(userDetails.password)) {
+        return true;
     }
-    if(!userDetails.email_id || /^\s*$/.test(userDetails.email_id)) {
-        return false;
-    }
-    if(!userDetails.password || /^\s*$/.test(userDetails.password)) {
-        return false
-    }
-    return true;
+    return false;
 }
 
 function signInValidation(userInfo) {
-    if(!userInfo.email_id || /^\s*$/.test(userInfo.email_id)) {
-        return false;
+    if(checkString.isValid(userInfo.email_id) && checkString.isValid(userInfo.password)) {
+        return true;
     }
-    if(!userInfo.password || /^\s*$/.test(userInfo.password)) {
-        return false
-    }
-    return true;
+    return false;
 }
 
 function signOutValidation(userInfo) {
-    if(!userInfo.user_id || /^\s*$/.test(userInfo.user_id)) {
-        return false
+    if(checkString.isValid(userInfo.user_id)) {
+        return true;
     }
-    return true;
+    return false;
 }
 
 module.exports = {signUpValidation, signInValidation, signOutValidation};
