@@ -4,7 +4,9 @@ const URL_PATTERNS = {
     ACCOUNT_SIGNIN: "/signin",
     ACCOUNT_SIGNOUT: "/signout",
     DISCUSSIONS: "/discussions",
-    CREATE_DISCUSSION: "/create-discussion"
+    CREATE_DISCUSSION: "/create-discussion",
+    CREATE_REPLY: "/create-reply",
+    REPLY: "/reply"
 }
 
 //constants for all Status Messages

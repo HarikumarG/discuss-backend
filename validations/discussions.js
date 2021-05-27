@@ -26,4 +26,18 @@ function deleteDiscussionValidation(userData) {
     return false;
 }
 
-module.exports = {getDiscussionValidation, createDiscussionValidation, deleteDiscussionValidation};
+function createReplyValidation(replyData) {
+    if(checkString.isValid(replyData.user_id) && checkString.isValid(replyData.topic_id) && checkString.isValid(replyData.reply_content)) {
+        return true;
+    }
+    return false;
+}
+
+function deleteReplyValidation(replyData) {
+    if(checkString.isValid(replyData.user_id) && checkString.isValid(replyData.topic_id) && checkString.isValid(replyData.reply_id)) {
+        return true;
+    }
+    return false;
+}
+
+module.exports = {getDiscussionValidation, createDiscussionValidation, deleteDiscussionValidation, createReplyValidation, deleteReplyValidation};

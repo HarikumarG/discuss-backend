@@ -108,9 +108,78 @@ router.delete(API_CONSTANTS.URL_PATTERNS.DISCUSSIONS+'/:topic_id', passport.auth
                 response.status(200).send(JSON.stringify(statusMessage));
             } else if(status === false){
                 let statusMessage = {
-                    STATUS: API_CONSTANTS.STATUS_MESSAGE.RESOURCE_NOT_FOUND
+                    STATUS: API_CONSTANTS.STATUS_MESSAGE.UNAUTHORIZED
                 }
-                response.status(404).send(JSON.stringify(statusMessage));
+                response.status(401).send(JSON.stringify(statusMessage));
+            } else {
+                let serverError = {
+                    STATUS: API_CONSTANTS.STATUS_MESSAGE.INTERNAL_SERVER_ERROR
+                }
+                response.status(500).send(JSON.stringify(serverError));
+            }
+        } catch(error) {
+            next(error);
+        }
+    } else {
+        let validationMessage = {
+            STATUS: API_CONSTANTS.STATUS_MESSAGE.MISSING_PARAMETER
+        }
+        response.status(401).send(JSON.stringify(validationMessage));
+    }
+});
+
+//route for creating a reply for a particular discussion
+router.post(API_CONSTANTS.URL_PATTERNS.DISCUSSIONS+'/:topic_id'+API_CONSTANTS.URL_PATTERNS.CREATE_REPLY, passport.authenticate('jwt',{session: false}), async(request, response, next) => {
+    let replyData = {
+        user_id: request.body.user_id,
+        topic_id: request.params.topic_id,
+        reply_content: request.body.reply_content
+    }
+    if(discussions_validation.createReplyValidation(replyData)) {
+        try {
+            let status = await discussionModel.createDiscussionReply(replyData);
+            if(status === true) {
+                let statusMessage = {
+                    STATUS: API_CONSTANTS.STATUS_MESSAGE.SUCCESS
+                }
+                response.status(200).send(JSON.stringify(statusMessage));
+            } else {
+                let serverError = {
+                    STATUS: API_CONSTANTS.STATUS_MESSAGE.INTERNAL_SERVER_ERROR
+                }
+                response.status(500).send(JSON.stringify(serverError));
+            }
+        } catch(error) {
+            next(error);
+        }
+    } else {
+        let validationMessage = {
+            STATUS: API_CONSTANTS.STATUS_MESSAGE.MISSING_PARAMETER
+        }
+        response.status(401).send(JSON.stringify(validationMessage));
+    }
+});
+
+//route for deleting a reply from particular discussion
+router.delete(API_CONSTANTS.URL_PATTERNS.DISCUSSIONS+'/:topic_id'+API_CONSTANTS.URL_PATTERNS.REPLY+'/:reply_id', passport.authenticate('jwt',{session: false}), async(request, response, next) => {
+    let replyData = {
+        user_id: request.body.user_id,
+        topic_id: request.params.topic_id,
+        reply_id: request.params.reply_id
+    }
+    if(discussions_validation.deleteReplyValidation(replyData)) {
+        try {
+            let status = await discussionModel.deleteDiscussionReply(replyData);
+            if(status === true) {
+                let statusMessage = {
+                    STATUS: API_CONSTANTS.STATUS_MESSAGE.SUCCESS
+                }
+                response.status(200).send(JSON.stringify(statusMessage));
+            } else if(status === false){
+                let statusMessage = {
+                    STATUS: API_CONSTANTS.STATUS_MESSAGE.UNAUTHORIZED
+                }
+                response.status(401).send(JSON.stringify(statusMessage));
             } else {
                 let serverError = {
                     STATUS: API_CONSTANTS.STATUS_MESSAGE.INTERNAL_SERVER_ERROR
