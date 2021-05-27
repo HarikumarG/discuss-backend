@@ -13,9 +13,11 @@ function registerUser(userDetails) {
                             if(!error) {
                                 if(rows.affectedRows === 1) {
                                     resolve(true);
+                                } else {
+                                    resolve(false);
                                 }
                             } else {
-                                resolve(false);
+                                resolve(error);
                             }
                         });
                     }
@@ -32,7 +34,7 @@ function registerUser(userDetails) {
 //function to verify, if the particular user account exists or not
 function verifyUser(userInfo) {
     return new Promise(resolve => {
-        let url = "SELECT user_id,user_name,email_id FROM accounts WHERE email_id='"+userInfo.email_id+"' AND password='"+userInfo.password+"'";
+        let url = "SELECT user_id,user_name,email_id FROM accounts WHERE BINARY email_id='"+userInfo.email_id+"' AND BINARY password='"+userInfo.password+"'";
         mysql_connection.query(url,(error, rows) => {
             if(!error) {
                 if(rows.length === 1) {

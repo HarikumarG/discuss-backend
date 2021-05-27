@@ -26,8 +26,9 @@ function updateJwtAuth(packet) {
             if(!error) {
                 if(rows.changedRows === 1) {
                     resolve(true);
+                } else {
+                    resolve(false);
                 }
-                resolve(false);
             } else {
                 resolve(error);
             }
@@ -43,8 +44,9 @@ function updateJwtAuthToDefault(userInfo) {
             if(!error) {
                 if(rows.changedRows === 1) {
                     resolve(true);
+                } else {
+                    resolve(false);
                 }
-                resolve(false);
             } else {
                 resolve(error);
             }

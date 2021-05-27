@@ -23,7 +23,7 @@ module.exports = function(passport) {
                 if(verifiedId === null) {
                     return callback(null,false);
                 }
-                else if(verifiedId.user_id !== undefined) {
+                else if(verifiedId.user_id === request.body.user_id) {
                     return callback(null,true);
                 } else {
                     return callback(verifiedId,false);
