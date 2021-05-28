@@ -1,0 +1,90 @@
+ACCOUNT SIGNUP
+
+curl --location --request POST 'http://localhost:3000/accounts/signup' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "user_name": "user",
+    "email_id": "user@gmail.com",
+    "password": "user"
+}'
+
+
+ACCOUNT SIGNIN
+
+curl --location --request POST 'http://localhost:3000/accounts/signin' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "email_id": "user@gmail.com",
+    "password": "user"
+}'
+
+
+CREATE NEW DISCUSSION
+
+curl --location --request POST 'http://localhost:3000/discussions-list/create-discussion' \
+--header 'Authorization: Bearer <get jwt_token from account_signin response>' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "user_id": <get user_id from account_signin response>,
+    "topic_name": "Topic title",
+    "description": "Topic description"
+}'
+
+
+GET ALL DISCUSSIONS LIST
+
+curl --location --request GET 'http://localhost:3000/discussions-list/discussions/'
+
+
+GET PARTICULAR DISCUSSION DATA
+
+curl --location --request GET 'http://localhost:3000/discussions-list/discussions/1'
+
+Note: value "1" is the topic_id which is auto-generated id, you can get that id by get-all-discussion-list(above http call)
+
+
+CREATE NEW REPLY FOR A PARTICULAR DISCUSSION
+
+curl --location --request POST 'http://localhost:3000/discussions-list/discussions/1/create-reply' \
+--header 'Authorization: Bearer <get jwt_token from account_signin response>' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "user_id": <get user_id from account_signin response>,
+    "reply_content": "Reply content"
+}'
+
+Note: value "1" is the topic_id which is auto-generated id, you can get that id by get-all-discussion-list(above http call)
+
+
+DELETE A PARTICULAR DISCUSSION
+
+curl --location --request DELETE 'http://localhost:3000/discussions-list/discussions/1' \
+--header 'Authorization: Bearer <get jwt_token from account_signin response>' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "user_id": <get user_id from account_signin response>
+}'
+
+Note: value "1" is the topic_id which is auto-generated id, you can delete a discussion only if you created that discussion
+
+
+DELETE A PARTICULAR REPLY FROM A PARTICULAR DISCUSSION
+
+curl --location --request DELETE 'http://localhost:3000/discussions-list/discussions/1/reply/3' \
+--header 'Authorization: Bearer <get jwt_token from account_signin response>' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "user_id": <get user_id from account_signin response>
+}'
+
+Note: value "1" is the topic_id which is auto-generated id, value "3" is the reply_id which is also auto generated you can get this id by get-particular-discussion(http call), you can delete reply only if you created that reply or you created that discussion
+
+
+ACCOUNT SIGNOUT
+
+curl --location --request POST 'http://localhost:3000/accounts/signout' \
+--header 'Authorization: Bearer <get jwt_token from account_signin response>' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "user_id": <get user_id from account_signin response>
+}'
