@@ -74,7 +74,7 @@ router.post(API_CONSTANTS.URL_PATTERNS.CREATE_DISCUSSION, passport.authenticate(
                 let statusMessage = {
                     STATUS: API_CONSTANTS.STATUS_MESSAGE.SUCCESS
                 }
-                response.status(200).send(JSON.stringify(statusMessage));
+                response.status(201).send(JSON.stringify(statusMessage));
             } else {
                 let serverError = {
                     STATUS: API_CONSTANTS.STATUS_MESSAGE.INTERNAL_SERVER_ERROR
@@ -142,7 +142,7 @@ router.post(API_CONSTANTS.URL_PATTERNS.DISCUSSIONS+'/:topic_id'+API_CONSTANTS.UR
                 let statusMessage = {
                     STATUS: API_CONSTANTS.STATUS_MESSAGE.SUCCESS
                 }
-                response.status(200).send(JSON.stringify(statusMessage));
+                response.status(201).send(JSON.stringify(statusMessage));
             } else {
                 let serverError = {
                     STATUS: API_CONSTANTS.STATUS_MESSAGE.INTERNAL_SERVER_ERROR
