@@ -2,7 +2,7 @@
   "name": "discuss-backend",
   "version": "1.0.0",
   "description": "A small app for discussion",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "devStart": "nodemon server.js"
