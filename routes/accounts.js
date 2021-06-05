@@ -1,16 +1,17 @@
 const express = require('express');
-const accountsModel = require('../models/accounts');
-const jwtModel = require('../models/auth-jwt');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 require('../config/passport')(passport);
 const accounts_validation = require('../validations/accounts');
 const API_CONSTANTS = require('../constants/api');
 
+const authSchema = require('../schemas/authenticate');
+const accountsSchema = require('../schemas/accounts');
+
 const router = express.Router();
 
 //route for account registration
-router.post(API_CONSTANTS.URL_PATTERNS.ACCOUNT_SIGNUP, async(request,response, next) => {
+router.post(API_CONSTANTS.URL_PATTERNS.ACCOUNT_SIGNUP, async(request,response) => {
     let userDetails = {
         user_name: request.body.user_name,
         email_id: request.body.email_id,
@@ -24,34 +25,37 @@ router.post(API_CONSTANTS.URL_PATTERNS.ACCOUNT_SIGNUP, async(request,response, n
         response.status(401).send(JSON.stringify(validationMessage));
     } else {
         try {
-            let isAccountAlreadyExists  = await accountsModel.verifyAccount(userDetails);
-            if(isAccountAlreadyExists === true) {
+            let isAccountExists = null;
+            let findDocument = await accountsSchema.findOne({email_id: userDetails.email_id});
+            if(findDocument === null) {
+                isAccountExists = false;
+            }
+            if(isAccountExists === false) {
+                let document = await new accountsSchema(userDetails).save();
+                await new authSchema({
+                    user_id: document._id
+                }).save();
+                let statusMessage = {
+                    STATUS: API_CONSTANTS.STATUS_MESSAGE.REGISTER_SUCCESS
+                }
+                response.status(201).send(JSON.stringify(statusMessage));
+            } else {
                 let statusMessage = {
                     STATUS: API_CONSTANTS.STATUS_MESSAGE.ACCOUNT_ALREADY_EXISTS
                 }
                 response.status(409).send(JSON.stringify(statusMessage));
-            } else {
-                let status = await accountsModel.registerUser(userDetails);
-                if(status === true) {
-                    let statusMessage = {
-                        STATUS: API_CONSTANTS.STATUS_MESSAGE.REGISTER_SUCCESS
-                    }
-                    response.status(201).send(JSON.stringify(statusMessage));
-                } else {
-                    let statusMessage = {
-                        STATUS: API_CONSTANTS.STATUS_MESSAGE.INTERNAL_SERVER_ERROR
-                    }
-                    response.status(500).send(JSON.stringify(statusMessage));
-                }
             }
         } catch(error) {
-            next(error);
+            let statusMessage = {
+                STATUS: API_CONSTANTS.STATUS_MESSAGE.INTERNAL_SERVER_ERROR
+            }
+            response.status(500).send(JSON.stringify(statusMessage));
         }
     }
 });
 
 //route for account login
-router.post(API_CONSTANTS.URL_PATTERNS.ACCOUNT_SIGNIN, async(request, response, next) => {
+router.post(API_CONSTANTS.URL_PATTERNS.ACCOUNT_SIGNIN, async(request, response) => {
     let userInfo = {
         email_id: request.body.email_id,
         password: request.body.password
@@ -64,44 +68,39 @@ router.post(API_CONSTANTS.URL_PATTERNS.ACCOUNT_SIGNIN, async(request, response, 
         response.status(401).send(JSON.stringify(validationMessage));
     } else {
         try {
-            let userData = await accountsModel.verifyUser(userInfo);
-            if(userData !== null && userData.user_id !== undefined) {
+            let userData = null;
+            userData = await accountsSchema.findOne(userInfo).select({
+                'password': false,
+                'created_time': false
+            });
+            if(userData !== null) {
                 //jwt token will expire in one day
-                const token = jwt.sign({user_id: userData.user_id},process.env.JWT_AUTH_SECRET_KEY, {expiresIn: '1d'});
+                const token = jwt.sign({user_id: userData._id},process.env.JWT_AUTH_SECRET_KEY, {expiresIn: '1d'});
+                await authSchema.findOneAndUpdate({user_id: userData._id},{token: token});
                 let verifiedUser = {
                     STATUS: API_CONSTANTS.STATUS_MESSAGE.LOGIN_SUCCESS,
                     DATA: userData,
                     JWT_TOKEN: token
                 }
-                let updateAuth = await jwtModel.updateJwtAuth(verifiedUser);
-                if(updateAuth === true) {
-                    response.status(200).send(JSON.stringify(verifiedUser));
-                } else {
-                    let serverError = {
-                        STATUS: API_CONSTANTS.STATUS_MESSAGE.INTERNAL_SERVER_ERROR
-                    }
-                    response.status(500).send(JSON.stringify(serverError));
-                }
+                response.status(200).send(JSON.stringify(verifiedUser));
             }
             else if(userData === null){
                 let unverifierUser = {
                     STATUS: API_CONSTANTS.STATUS_MESSAGE.UNAUTHORIZED
                 }
                 response.status(401).send(JSON.stringify(unverifierUser));
-            } else {
-                let serverError = {
-                    STATUS: API_CONSTANTS.STATUS_MESSAGE.INTERNAL_SERVER_ERROR
-                }
-                response.status(500).send(JSON.stringify(serverError));
-            } 
+            }
         } catch(error) {
-            next(error);
+            let serverError = {
+                STATUS: API_CONSTANTS.STATUS_MESSAGE.INTERNAL_SERVER_ERROR
+            }
+            response.status(500).send(JSON.stringify(serverError));
         }
     }
 });
 
 //route for account logout
-router.post(API_CONSTANTS.URL_PATTERNS.ACCOUNT_SIGNOUT, passport.authenticate('jwt',{session: false}), async(request, response, next) => {
+router.post(API_CONSTANTS.URL_PATTERNS.ACCOUNT_SIGNOUT, passport.authenticate('jwt',{session: false}), async(request, response) => {
     let userInfo = {
         user_id: request.body.user_id
     }
@@ -113,25 +112,23 @@ router.post(API_CONSTANTS.URL_PATTERNS.ACCOUNT_SIGNOUT, passport.authenticate('j
         response.status(401).send(JSON.stringify(validationMessage));
     } else {
         try {
-            let status = await jwtModel.updateJwtAuthToDefault(userInfo);
-            if(status === true) {
+            let status = await authSchema.findOneAndUpdate({user_id: userInfo.user_id},{token: null});
+            if(status !== null) {
                 let statusMessage = {
                     STATUS: API_CONSTANTS.STATUS_MESSAGE.LOGOUT_SUCCESS
                 }
                 response.status(200).send(JSON.stringify(statusMessage));
-            } else if(status === false){
+            } else {
                 let statusMessage = {
                     STATUS: API_CONSTANTS.STATUS_MESSAGE.UNAUTHORIZED
                 }
                 response.status(401).send(JSON.stringify(statusMessage));
-            } else {
-                let statusMessage = {
-                    STATUS: API_CONSTANTS.STATUS_MESSAGE.INTERNAL_SERVER_ERROR
-                }
-                response.status(500).send(JSON.stringify(statusMessage));
             }
         } catch(error) {
-            next(error);
+            let statusMessage = {
+                STATUS: API_CONSTANTS.STATUS_MESSAGE.INTERNAL_SERVER_ERROR
+            }
+            response.status(500).send(JSON.stringify(statusMessage));
         }
     }
 });
